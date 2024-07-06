@@ -16,25 +16,49 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Divide } from "lucide-react";
+import { Divide, Loader2 } from "lucide-react";
 import CustomInput from "./CustomInput";
 import { authFormSchema } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 const AuthForm = ({ type }: { type: string }) => {
+  const router = useRouter();
   const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const formSchema = authFormSchema(type);
 
-  const form = useForm<z.infer<typeof authFormSchema>>({
-    resolver: zodResolver(authFormSchema),
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
 
-  // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof authFormSchema>) {
-    console.log(values);
-  }
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    setIsLoading(true);
+
+    try {
+      // sign up with Appwrite & create plain link token
+      if (type === "sign-up") {
+        // const newUser = await signUp(data);
+        // setUser(newUser);
+      }
+      if (type === "sign-in") {
+        // const response = await signIn({
+        //   email:data.email,
+        //   password:data.password,
+        // });
+        // if(response) {
+        //   router.push('/')
+        // }
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <section className="auth-form">
       <header className="flex flex-col gap-5 md:gap-8">
@@ -66,7 +90,69 @@ const AuthForm = ({ type }: { type: string }) => {
         <>
           {" "}
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-8 bg-blue-25 p-4 rounded-lg"
+            >
+              {type === "sign-up" && (
+                <>
+                  <div className="flex gap-4">
+                    <CustomInput
+                      control={form.control}
+                      name="firstName"
+                      placeholder="Enter your first name"
+                      label="First Name"
+                    />
+                    <CustomInput
+                      control={form.control}
+                      name="lastName"
+                      placeholder="Enter your last name"
+                      label="Last Name"
+                    />
+                  </div>
+
+                  <CustomInput
+                    control={form.control}
+                    name="address1"
+                    placeholder="Enter your address"
+                    label="Address"
+                  />
+                  <CustomInput
+                    control={form.control}
+                    name="city"
+                    placeholder="Enter your city"
+                    label="City"
+                  />
+                  <div className="flex gap-4">
+                    <CustomInput
+                      control={form.control}
+                      name="state"
+                      placeholder="Example:NSW"
+                      label="State"
+                    />
+                    <CustomInput
+                      control={form.control}
+                      name="postalCode"
+                      placeholder="Enter your post code"
+                      label="Example: 2000"
+                    />
+                  </div>
+                  <div className="flex gap-4">
+                    <CustomInput
+                      control={form.control}
+                      name="dob"
+                      placeholder="DD-MM-YYYY"
+                      label="Date of Birth"
+                    />
+                    <CustomInput
+                      control={form.control}
+                      name="tfn"
+                      placeholder="TFN"
+                      label="example: 123456789"
+                    />
+                  </div>
+                </>
+              )}
               <CustomInput
                 control={form.control}
                 name="email"
@@ -79,9 +165,35 @@ const AuthForm = ({ type }: { type: string }) => {
                 placeholder="Enter your password"
                 label="Password"
               />
-              <Button type="submit">Submit</Button>
+              <div className="flex flex-col gap-4">
+                <Button type="submit" className="form-btn" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 size={20} className="animate-spin" /> &nbsp;
+                      Loading...
+                    </>
+                  ) : type === "sign-in" ? (
+                    "Sign In"
+                  ) : (
+                    "Sign Up"
+                  )}
+                </Button>
+              </div>
             </form>
           </Form>
+          <footer className="flex justify-center gap-1">
+            <p className="text-14 font-normal text-gray-600">
+              {type === "sign-in"
+                ? "Don't have an account?"
+                : "Already have an account?"}
+            </p>
+            <Link
+              href={type === "sign-in" ? "/sign-up" : "/sign-in"}
+              className="text-blue-500 hover:underline"
+            >
+              {type === "sign-in" ? "Sign Up" : "Sign In"}
+            </Link>
+          </footer>
         </>
       )}
     </section>
